@@ -1,2 +1,7 @@
 .vs/
 __pycache__/
+Apis/__pycache__/
+\Loggers/__pycache__/
+\Processing/__pycache__/
+/config.txt
+/Processing/__pycache__/transaction_processor.cpython-311.pyc
