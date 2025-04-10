@@ -21,14 +21,21 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Folder Include="Apis\" />
+    <Folder Include="Apis\__pycache__\" />
     <Folder Include="Loggers\" />
     <Folder Include="Processing\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Apis\Abuseipdb.py" />
     <Compile Include="Loggers\Pfirewall_logging_windows.py" />
     <Compile Include="main.py" />
     <Compile Include="Processing\transaction_processor.py" />
     <Compile Include="treeview_utils.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include=".gitignore" />
+    <Content Include="Apis\__pycache__\Abuseipdb.cpython-311.pyc" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

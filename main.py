@@ -1,5 +1,6 @@
 ﻿from asyncio import constants
 from email.mime import application
+from logging import getLogger
 import tkinter as tk
 from tkinter import ttk
 import threading
@@ -10,18 +11,25 @@ from treeview_utils import save_treeview, load_treeview
 
 
 # ==== initialize the logger ====
+
 logging_paused = False  # Vlag om logging te pauzeren
 
 def pause_logging():
     global logging_paused
     logging_paused = True
+    processor.paused = True
+    print("Logging paused")  # Debugging output
 
 # Functie om de logging te hervatten
 def resume_logging():
     global logging_paused
     logging_paused = False
+    processor.paused = False
     if log_thread is None or not log_thread.is_alive():
         start_logger()  # Start de logging opnieuw als het niet draait
+
+    print("Logging resumed")  # Debugging output)
+
 
 
 # ==== Setup main window ====
@@ -47,7 +55,7 @@ internal_check.pack(side="top",anchor='w', padx=10, pady=5)
 public_check.pack(side="top",anchor='w', padx=10, pady=5)
 
 # ==== Treeview setup ====
-columns = ("Date", "Time", "Action", "Protocol", "Source IP", "Dest IP", "Source Port", "Dest Port", "Size", "Flags", "Count")
+columns = ("Date", "Time", "Action", "Protocol", "Source IP", "Dest IP", "Source Port", "Dest Port", "Size", "Count", "Suspicious", "Location", "Domain")
 
 # Maak een frame voor de treeview en de scrollbar
 tree_frame = ttk.Frame(root)
@@ -67,10 +75,15 @@ scrollbar.pack(side="right", fill="y")
 
 # === Other buttons ===
 # Voeg knoppen toe voor opslaan en inladen
+def loadbuttonfunction(tree, columns):
+    pause_logging()
+    load_treeview(tree, columns)
+    
+
 save_button = ttk.Button(root, text="Save", command=lambda: save_treeview(tree, columns))
 save_button.pack(side="right", padx=10, pady=5)
 
-load_button = ttk.Button(root, text="Load", command=lambda: load_treeview(tree, columns))
+load_button = ttk.Button(root, text="Load", command=lambda: loadbuttonfunction(tree,columns))
 load_button.pack(side="right", padx=10, pady=5)
 
 # Knoppen voor pauzeren en hervatten
@@ -80,7 +93,8 @@ pause_button.pack(side="left", padx=10, pady=5)
 resume_button = ttk.Button(root, text="Resume Logging", command=resume_logging)
 resume_button.pack(side="left", padx=10, pady=5)
 
-
+clearall_button = ttk.Button(root, text="Clear All", command=lambda: tree.delete(*tree.get_children()))
+clearall_button.pack(side="left", padx=10, pady=5)
 
 # ==== Helper functions ====
 
@@ -94,7 +108,7 @@ def is_public(ip):
     # Controleer hier of het IP publiek is
     return not is_local(ip) and not is_internal(ip)
 
-def update_treeview(item_id, log_entry, count):
+def update_treeview(item_id, log_entry, count, is_suspicious, location, domain):
     values = (
         log_entry["date"],
         log_entry["time"],
@@ -105,8 +119,10 @@ def update_treeview(item_id, log_entry, count):
         log_entry["source_port"],
         log_entry["dest_port"],
         log_entry["size"],
-        log_entry["flags"],
-        count
+        count,
+        is_suspicious,
+        location, 
+        domain
     )
 
     if not item_id or not tree.exists(item_id):
@@ -123,7 +139,7 @@ def apply_filters():
     processor.tree_items.clear()  # Verwijder oude mappings van de processor
 
     # Loop door de geschiedenis en voeg alleen items toe die aan de filters voldoen
-    for key, (log_entry, count) in processor.history.items():
+    for key, (log_entry, count, is_suspicious, location, domain) in processor.history.items():
         src_ip = log_entry['source_ip']
 
         # Filter op basis van lokale, interne, of publieke IP's
@@ -135,7 +151,7 @@ def apply_filters():
             continue
 
         # Update de treeview met de gefilterde data
-        item_id = update_treeview(None, log_entry, count)
+        item_id = update_treeview(None, log_entry, count, is_suspicious, location, domain)
         processor.tree_items[key] = item_id  # Voeg het nieuwe item toe aan de mapping
 
 # ==== Start logger thread ====
@@ -147,25 +163,25 @@ def start_logger():
     log_thread.daemon = True
     log_thread.start()
 
-def process_new_entry(item_id, log_entry, count):
+def process_new_entry(item_id, log_entry, count, is_suspicious, location, domain):
     global logging_paused
     if logging_paused:
         return  # Stop met loggen als de pauze is ingeschakeld
+    else:
+        src_ip = log_entry["source_ip"]
 
-    src_ip = log_entry["source_ip"]
+        if is_local(src_ip) and not local_var.get():
+            return
+        if is_internal(src_ip) and not internal_var.get():
+            return
+        if is_public(src_ip) and not public_var.get():
+            return
+        if not item_id or not tree.exists(item_id):
+            item_id = None
 
-    if is_local(src_ip) and not local_var.get():
-        return
-    if is_internal(src_ip) and not internal_var.get():
-        return
-    if is_public(src_ip) and not public_var.get():
-        return
-    if not item_id or not tree.exists(item_id):
-        item_id = None
-
-    # Voer de update uit van het item of voeg het toe als het nieuw is
-    new_item_id = update_treeview(item_id, log_entry, count)
-    processor.tree_items[(log_entry["source_ip"], log_entry["dest_ip"])] = new_item_id
+        # Voer de update uit van het item of voeg het toe als het nieuw is
+        new_item_id = update_treeview(item_id, log_entry, count, is_suspicious, location, domain)
+        processor.tree_items[(log_entry["source_ip"], log_entry["dest_ip"])] = new_item_id
 
 # ==== Start the app ====
 

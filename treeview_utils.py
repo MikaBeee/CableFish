@@ -1,4 +1,6 @@
 import csv
+import glob
+import logging
 from tkinter import filedialog
 from tkinter import ttk
 
@@ -17,7 +19,7 @@ def save_treeview(tree, columns):
 
 # Functie om de inhoud van een CSV-bestand in de Treeview in te laden
 def load_treeview(tree, columns):
-    # Open een dialoogvenster om een bestand te selecteren
+
     file_path = filedialog.askopenfilename(filetypes=[("CSV Files", "*.csv")])
     if file_path:
         # Verwijder alle bestaande items in de treeview
