@@ -28,6 +28,7 @@
     <Compile Include="Loggers\Pfirewall_logging_windows.py" />
     <Compile Include="main.py" />
     <Compile Include="Processing\transaction_processor.py" />
+    <Compile Include="treeview_utils.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
