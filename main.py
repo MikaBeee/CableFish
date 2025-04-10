@@ -27,7 +27,7 @@ def resume_logging():
 # ==== Setup main window ====
 root = tk.Tk()
 root.title("Firewall Log Viewer")
-root.geometry("1000x600")
+root.geometry("1500x600")
 sv_ttk.set_theme("dark")
 
 # ==== Filters ====
