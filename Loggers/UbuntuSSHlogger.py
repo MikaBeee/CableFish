@@ -124,6 +124,15 @@ class SSHLogger:
         return False
 
     @staticmethod
+    def wait_for_authorization(host, username, private_key_path):
+        """Check authentication and wait until successful."""
+        while not SSHLogger.check_ssh_authentication(host, username, str(private_key_path)):
+            print("Authentication failed, retrying...")
+            time.sleep(5)  # Retry after a delay (e.g., 5 seconds)
+
+        print("Authentication successful.")
+    
+    @staticmethod
     def start_monitoring():
         config = SSHLogger.load_config()
 
@@ -148,20 +157,18 @@ class SSHLogger:
             private_key_path = Path(pathtokey)
             SSHLogger.save_config(host, username, str(private_key_path))  # Save the new config
 
+        # Wait for authentication to be successful before proceeding
+        SSHLogger.wait_for_authorization(host, username, private_key_path)
+
         # Continuous monitoring of the auth log
         while True:
-            # Check authentication first
-            if SSHLogger.check_ssh_authentication(host, username, str(private_key_path)):
-                print("Authentication successful, proceeding to download.")
-                success = SSHLogger.get_auth_log(host, username, str(private_key_path))
-                if not success:
-                    print("Failed to download auth.log.")
-            else:
-                print("Authentication failed. Exiting.")
-                break
-
-            # Sleep for a defined period before checking again (e.g., 60 seconds)
-            time.sleep(30)  # Adjust this time as necessary
+            print("Proceeding with log download...")
+            success = SSHLogger.get_auth_log(host, username, str(private_key_path))
+            if not success:
+                print("Failed to download auth.log.")
+            
+            # Sleep for a defined period before checking again (e.g., 30 seconds)
+            time.sleep(30)  
 
 
 # Start the monitoring process when the script runs
