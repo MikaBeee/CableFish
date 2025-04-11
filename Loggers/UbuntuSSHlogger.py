@@ -62,7 +62,6 @@ class SSHLogger:
         try:
             # Verify key file exists
             if not os.path.exists(private_key_path):
-                print(f"Private key file not found: {private_key_path}")
                 return False
             
             # Create SSH client

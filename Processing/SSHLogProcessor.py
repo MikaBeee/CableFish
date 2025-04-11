@@ -78,7 +78,7 @@ class SSHLogProcessor:
         :param update_callback: De callbackfunctie die wordt aangeroepen voor elke nieuwe logregel.
         """
         if self.log_file_path is None or not os.path.exists(self.log_file_path):
-            print(f"Logbestand nog niet gevonden authoriseer uzelf eerst: {self.log_file_path}")
+            print(f"\n\n\n\nLogbestand nog niet gevonden authoriseer uzelf eerst: {self.log_file_path}\n\n\n\n")
             return
 
         with open(self.log_file_path, "r") as file:
