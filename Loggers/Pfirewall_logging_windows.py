@@ -52,4 +52,4 @@ class PfirewallFileLogger:
                         self.logs.append(parsed)  # Voeg toe aan dictionary
                         update_callback(parsed)  # Stuur naar main.py
                 else:
-                    time.sleep(0.1)
+                    time.sleep(1)

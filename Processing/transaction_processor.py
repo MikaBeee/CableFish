@@ -37,6 +37,3 @@ class TransactionProcessor:
             # Geef de entry door voor verwerking in de GUI
             item_id = self.tree_items.get(key)  # Haal item_id op uit de mapping
             update_callback(item_id, log_entry, count, is_suspicious, location, domain)
-        
-            # Je kunt nu de status van 'is_suspicious' en 'location' gebruiken om verdere acties te ondernemen
-            print(f"IP: {log_entry['dest_ip']} | Suspicious: {is_suspicious} | Location: {location} | Domain: {domain}")
