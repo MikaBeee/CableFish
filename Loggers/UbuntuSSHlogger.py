@@ -126,7 +126,7 @@ class SSHLogger:
     def wait_for_authorization(host, username, private_key_path):
         """Check authentication and wait until successful."""
         while not SSHLogger.check_ssh_authentication(host, username, str(private_key_path)):
-            print("Authentication failed, retrying...")
+            print("Authentication failed, retrying... is the server running?")
             time.sleep(5)  # Retry after a delay (e.g., 5 seconds)
 
         print("Authentication successful.")
@@ -136,7 +136,7 @@ class SSHLogger:
         config = SSHLogger.load_config()
 
         if config:
-            use_saved = input("Use saved configuration? (y/n): ").strip().lower()
+            use_saved = input("Use saved ssh configuration? (y/n): ").strip().lower()
             if use_saved == 'y':
                 host = config['host']
                 username = config['username']
