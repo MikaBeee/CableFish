@@ -37,3 +37,5 @@ class TransactionProcessor:
             # Geef de entry door voor verwerking in de GUI
             item_id = self.tree_items.get(key)  # Haal item_id op uit de mapping
             update_callback(item_id, log_entry, count, is_suspicious, location, domain)
+
+

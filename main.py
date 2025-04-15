@@ -93,7 +93,7 @@ def process_new_ssh_entry(item_id, log_entry, count, is_suspicious, location, do
         item_id = update_ssh_treeview(item_id, values)
 
         # Assuming you still want to keep track of the tree item
-        processor.tree_items[(src_ip, dest_ip)] = item_id
+        ssh_logprocessor.tree_items[(src_ip, dest_ip)] = item_id
 
 
 def update_ssh_treeview(item_id, values):
@@ -270,7 +270,7 @@ def start_logger():
 
     global ssh_log_thread
     ssh_processor = SSHLogProcessor.SSHLogProcessor(log_file_path, ssh_config_path)
-    ssh_log_thread = threading.Thread(target=ssh_processor.tail_log, args=(lambda entry: processor.process_log_entry(entry, process_new_ssh_entry),))
+    ssh_log_thread = threading.Thread(target=ssh_processor.tail_log, args=(lambda entry: ssh_logprocessor.process_log_entry(entry, process_new_ssh_entry),))
     ssh_log_thread.daemon = True
     ssh_log_thread.start()
 
@@ -312,6 +312,7 @@ ssh_config_path = r"ssh_config.json"
 
 
 processor = transaction_processor.TransactionProcessor(file_path)
+ssh_logprocessor = transaction_processor.TransactionProcessor(log_file_path)
 
 threading.Thread(target=start_logger, daemon=True).start()
 
