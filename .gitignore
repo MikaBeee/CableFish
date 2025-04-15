@@ -7,3 +7,5 @@ Apis/__pycache__/
 /Processing/__pycache__/transaction_processor.cpython-311.pyc
 /ssh_config.json
 /Loggers/SshLogs/auth.log
+/dist/main
+/build/main
