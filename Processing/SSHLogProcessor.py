@@ -2,7 +2,6 @@ import time
 import re
 import os
 import json
-import threading
 
 class SSHLogProcessor:
 

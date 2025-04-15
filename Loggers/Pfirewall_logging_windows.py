@@ -1,6 +1,5 @@
 # This file should only be run in a Windows environment
 import time
-import tkinter
 
 file_path = "C:\Windows\System32\LogFiles\Firewall\pfirewall.log"
  #Reads the firewall log file

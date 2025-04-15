@@ -1,6 +1,5 @@
 import paramiko
 import os
-import logging
 from pathlib import Path
 import json
 import time

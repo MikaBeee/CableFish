@@ -1,7 +1,4 @@
-﻿import glob
-from math import log
-import time
-import tkinter as tk
+﻿import tkinter as tk
 from tkinter import ttk
 import threading
 from Loggers import Pfirewall_logging_windows as pfirewall

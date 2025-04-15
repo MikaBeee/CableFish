@@ -1,8 +1,6 @@
 import csv
-import glob
-import logging
 from tkinter import filedialog
-from tkinter import ttk
+
 
 # Functie om de inhoud van de Treeview op te slaan naar een CSV-bestand
 def save_treeview(tree, columns):
