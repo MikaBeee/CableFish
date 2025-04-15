@@ -24,7 +24,6 @@
     <Folder Include="Apis\" />
     <Folder Include="Apis\__pycache__\" />
     <Folder Include="Loggers\" />
-    <Folder Include="Loggers\SshLogs\" />
     <Folder Include="Processing\" />
   </ItemGroup>
   <ItemGroup>
@@ -34,12 +33,12 @@
     <Compile Include="main.py" />
     <Compile Include="Processing\SSHLogProcessor.py" />
     <Compile Include="Processing\transaction_processor.py" />
+    <Compile Include="SolutionBuilder.py" />
     <Compile Include="treeview_utils.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitignore" />
     <Content Include="Apis\__pycache__\Abuseipdb.cpython-311.pyc" />
-    <Content Include="Loggers\SshLogs\auth.log" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

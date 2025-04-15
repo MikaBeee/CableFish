@@ -9,8 +9,13 @@ from Loggers import UbuntuSSHlogger as sshlogger
 from Processing import transaction_processor, SSHLogProcessor
 import sv_ttk
 from treeview_utils import save_treeview, load_treeview
+import SolutionBuilder
 
 # ==== initialize the logger ====
+sol = SolutionBuilder.Solutionbuilder()
+sol.buildSSHlogfiles()
+sol.buildAPIConfigFile()
+
 
 logging_paused = False
 

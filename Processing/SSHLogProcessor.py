@@ -77,9 +77,11 @@ class SSHLogProcessor:
         Leest het logbestand in real-time en verwerkt nieuwe regels.
         :param update_callback: De callbackfunctie die wordt aangeroepen voor elke nieuwe logregel.
         """
-        if self.log_file_path is None or not os.path.exists(self.log_file_path):
-            print(f"\n\n\n\nLogbestand nog niet gevonden authoriseer uzelf eerst: {self.log_file_path}\n\n\n\n")
-            return
+
+        while self.log_file_path is None or not os.path.exists(self.log_file_path):
+            time.sleep(1)  # Wacht tot het bestand beschikbaar is)
+            
+
 
         with open(self.log_file_path, "r") as file:
              # Ga naar het einde van het bestand
@@ -97,8 +99,6 @@ class SSHLogProcessor:
 # Voorbeeld gebruik van de SSHLogProcessor:
 log_file_path = r"Loggers/SshLogs/auth.log"  # Het pad naar je SSH logbestand
 ssh_config_path = r"ssh_config.json"  # Het pad naar je SSH configuratiebestand
-
-ssh_log_processor = SSHLogProcessor(log_file_path, ssh_config_path)
 
 # Callbackfunctie die de verwerkte loglijn ontvangt
 def update_ssh_log(parsed_log):
