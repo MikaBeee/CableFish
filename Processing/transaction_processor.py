@@ -38,4 +38,28 @@ class TransactionProcessor:
             item_id = self.tree_items.get(key)  # Haal item_id op uit de mapping
             update_callback(item_id, log_entry, count, is_suspicious, location, domain)
 
+    def process_live_packet(self, packet_dict, update_callback):
+        if self.paused:
+            return
+
+        key = (packet_dict["source_ip"], packet_dict["dest_ip"])
+
+        checked_data = abuseipdb.get_ip_info(packet_dict['dest_ip'])
+
+        domain = checked_data.get('domain', 'Unknown')
+        location = checked_data.get('location', 'Unknown')
+        is_suspicious = checked_data.get('is_suspicious', False)
+
+        if key in self.history:
+            _, count, is_suspicious, location, domain = self.history[key]
+            count += 1
+        else:
+            count = 1
+
+        self.history[key] = (packet_dict, count, is_suspicious, location, domain)
+    
+
+        item_id = self.tree_items.get(key)
+        update_callback(item_id, packet_dict, count, is_suspicious, location, domain)
+
 

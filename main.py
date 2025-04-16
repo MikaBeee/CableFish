@@ -3,16 +3,19 @@ from tkinter import ttk
 import threading
 from Loggers import Pfirewall_logging_windows as pfirewall
 from Loggers import UbuntuSSHlogger as sshlogger
+from Loggers import LiveNetworklogging as live_network
 from Processing import transaction_processor, SSHLogProcessor
 import sv_ttk
 from treeview_utils import save_treeview, load_treeview
 import SolutionBuilder
 
+
+
+
 # ==== initialize the logger ====
 sol = SolutionBuilder.Solutionbuilder()
 sol.buildSSHlogfiles()
 sol.buildAPIConfigFile()
-
 
 logging_paused = False
 
@@ -138,14 +141,111 @@ clearall_button.pack(side="left", padx=5)
 
 
 
-
-
-
-
-
-
-
 # ==== Pfirewall Tab content ====
+
+
+# -----------------------------------
+
+
+# ==== Live Netwrork Tab content ====
+
+columns = ("Date", "Time", "Action", "Protocol", "Source IP", "Dest IP", "Source Port", "Dest Port", "Size", "Count", "Suspicious", "Location", "Domain")
+
+tree_frame = ttk.Frame(live_network_frame)
+tree_frame.pack(fill="both", expand=True, padx=10, pady=5)
+
+livetree = ttk.Treeview(tree_frame, columns=columns, show="headings")
+for col in columns:
+    livetree.heading(col, text=col)
+    livetree.column(col, width=80, anchor="center")
+livetree.pack(side="left", fill="both", expand=True)
+
+scrollbar = ttk.Scrollbar(tree_frame, orient="vertical", command=livetree.yview)
+livetree.configure(yscrollcommand=scrollbar.set)
+scrollbar.pack(side="right", fill="y")
+
+def process_new_livenetwork_entry(item_id, log_entry, count, is_suspicious, location, domain):
+    if logging_paused:
+        return
+
+    src_ip = log_entry["source_ip"]
+
+    if is_local(src_ip) and not local_var.get():
+        return
+    if is_internal(src_ip) and not internal_var.get():
+        return
+    if is_public(src_ip) and not public_var.get():
+        return
+    if not item_id or not livetree.exists(item_id):
+        item_id = None
+
+    new_item_id = update_livetreeview(item_id, log_entry, count, is_suspicious, location, domain)
+    live_processor.tree_items[(log_entry["source_ip"], log_entry["dest_ip"])] = new_item_id
+
+def update_livetreeview(item_id, log_entry, count, is_suspicious, location, domain):
+    values = (
+        log_entry["date"],
+        log_entry["time"],
+        log_entry["action"],
+        log_entry["protocol"],
+        log_entry["source_ip"],
+        log_entry["dest_ip"],
+        log_entry["source_port"],
+        log_entry["dest_port"],
+        log_entry["size"],
+        count,
+        is_suspicious,
+        location,
+        domain
+    )
+
+    if not item_id or not livetree.exists(item_id):
+        return livetree.insert("", "end", values=values)
+    else:
+        livetree.item(item_id, values=values)
+        return item_id
+
+
+# === Buttons ===
+def loadbuttonfunction(tree, columns):
+    pause_logging()
+    load_treeview(tree, columns)
+
+button_frame = ttk.Frame(live_network_frame)
+button_frame.pack(fill='x', padx=10, pady=5)
+
+save_button = ttk.Button(button_frame, text="Save", command=lambda: save_treeview(livetree, columns))
+save_button.pack(side="right", padx=5)
+
+load_button = ttk.Button(button_frame, text="Load", command=lambda: loadbuttonfunction(livetree, columns))
+load_button.pack(side="right", padx=5)
+
+pause_button = ttk.Button(button_frame, text="Pause Logging", command=pause_logging)
+pause_button.pack(side="left", padx=5)
+
+resume_button = ttk.Button(button_frame, text="Resume Logging", command=resume_logging)
+resume_button.pack(side="left", padx=5)
+
+clearall_button = ttk.Button(button_frame, text="Clear All", command=lambda: livetree.delete(*livetree.get_children()))
+clearall_button.pack(side="left", padx=5)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # ==== Filters ====
 filter_frame = ttk.LabelFrame(pfirewall_frame, text="IP Filters")
@@ -282,8 +382,16 @@ def start_logger():
     log_thread.daemon = True
     log_thread.start()
 
+    global live_thread
+    live_logger = live_network.livenetworklogger(interface="interface")
+    live_thread = threading.Thread(
+        target=live_logger.start_sniffing,
+        args=(lambda entry: live_processor.process_live_packet(entry, process_new_livenetwork_entry),)
+    )
+    live_thread.daemon = True
+    live_thread.start()
 
-    #ssh starter
+
 
 
 def process_new_entry(item_id, log_entry, count, is_suspicious, location, domain):
@@ -310,9 +418,11 @@ file_path = r"C:\Windows\System32\LogFiles\Firewall\pfirewall.log"
 log_file_path = r"Loggers/SshLogs/auth.log"
 ssh_config_path = r"ssh_config.json"
 
-
 processor = transaction_processor.TransactionProcessor(file_path)
 ssh_logprocessor = transaction_processor.TransactionProcessor(log_file_path)
+live_processor = transaction_processor.TransactionProcessor("live_stream")
+
+
 
 threading.Thread(target=start_logger, daemon=True).start()
 

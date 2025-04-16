@@ -29,6 +29,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Apis\Abuseipdb.py" />
+    <Compile Include="Loggers\LiveNetworklogging.py" />
     <Compile Include="Loggers\Pfirewall_logging_windows.py" />
     <Compile Include="Loggers\UbuntuSSHlogger.py" />
     <Compile Include="main.py" />

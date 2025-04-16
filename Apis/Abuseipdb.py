@@ -1,6 +1,7 @@
 import requests
 import json
 import os
+from datetime import datetime, timedelta
 
 # Laad de gecontroleerde IP's wanneer de applicatie start
 config_file = "config.txt"
@@ -14,7 +15,7 @@ def get_api_key():
         return api_key
     else:
         # Als het bestand niet bestaat, vraag de sleutel en sla deze op
-        api_key = input("Zet hier je AbuseIPDB sleutel: ")
+        api_key = input("Put your ABUSEIPDB key here: ")
         with open(config_file, "w") as file:
             file.write(api_key)  # Sla de sleutel op in het bestand
         return api_key
@@ -25,15 +26,28 @@ MYAPIKEY = get_api_key()
 def load_checked_ips():
     """
     Laad de gecontroleerde IP's en hun data vanuit een bestand.
+    Verwijder IPs die ouder zijn dan 7 dagen.
     """
-    # Gebruik os.path.expanduser om de ~ te vervangen door het pad van de gebruikersmap
     file_path = os.path.expanduser(r"~\CableFish\Checked ips\checked_ips.json")
-    
-    # Controleer of het bestand bestaat
-    if os.path.exists(file_path):
-        with open(file_path, 'r') as file:
-            return json.load(file)
-    return {}
+    if not os.path.exists(file_path):
+        return {}
+
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+
+    # Filter oude data (>7 dagen)
+    cleaned_data = {}
+    for ip, info in data.items():
+        last_checked_str = info.get("last_checked")
+        if last_checked_str:
+            try:
+                last_checked = datetime.fromisoformat(last_checked_str)
+                if datetime.now() - last_checked < timedelta(days=7):
+                    cleaned_data[ip] = info
+            except ValueError:
+                pass  # Fout in datumformaat? Skip gewoon
+
+    return cleaned_data
 
 def save_checked_ips(checked_ips):
     """
@@ -49,15 +63,22 @@ def save_checked_ips(checked_ips):
     with open(file_path, 'w') as file:
         json.dump(checked_ips, file, indent=4)
 
+
 # Laad de gecontroleerde IP's bij het starten van de applicatie
 checked_ips = load_checked_ips()
 
+
+
 def get_ip_info(ip):
-    # Controleer eerst of we de gegevens al hebben
+    # Controleer of we het IP al eerder hebben gecontroleerd en of die controle minder dan 24 uur geleden was
     if ip in checked_ips:
-        return checked_ips[ip]
-    
-    # Als het IP nog niet gecontroleerd is, maak een API-aanroep
+        last_checked_str = checked_ips[ip].get('last_checked')
+        if last_checked_str:
+            last_checked = datetime.fromisoformat(last_checked_str)
+            if datetime.now() - last_checked < timedelta(hours=24):
+                return checked_ips[ip]  # Gebruik cached data
+
+    # Als het IP nog niet gecontroleerd is of de laatste controle is ouder dan 24 uur
     url = f'https://api.abuseipdb.com/api/v2/check'
     headers = {
         'Key': MYAPIKEY,
@@ -69,27 +90,36 @@ def get_ip_info(ip):
 
     try:
         response = requests.get(url, headers=headers, params=params)
-        response.raise_for_status()  # Zorg ervoor dat de aanvraag succesvol was
+        response.raise_for_status()
         data = response.json()
         
-        # Markeer het IP als gecontroleerd
         if data.get('data') and data['data'].get('isPublic'):
             abuse_confidence_score = data['data'].get('abuseConfidenceScore', 0)
-            is_suspicious = abuse_confidence_score > 80  # Verdacht als de score > 80
+            is_suspicious = abuse_confidence_score > 80
             
-            # Sla het IP en de status op
             checked_ips[ip] = {
-                'is_suspicious': is_suspicious, 
-                'location': data['data'].get('countryCode', 'Unknown'), 
-                'domain': data['data'].get('domain', 'Unknown')
+                'is_suspicious': is_suspicious,
+                'location': data['data'].get('countryCode', 'Unknown'),
+                'domain': data['data'].get('domain', 'Unknown'),
+                'last_checked': datetime.now().isoformat()
             }
-            save_checked_ips(checked_ips)  # Sla de gegevens op in een bestand
-            return checked_ips[ip]  # Geef de gegevens terug
-        else:
-            # Als geen gegevens beschikbaar zijn
-            checked_ips[ip] = {'is_suspicious': False, 'location': 'Unknown', 'domain': 'Unknown'}
             save_checked_ips(checked_ips)
-            return checked_ips[ip]  # IP is niet verdacht
+            return checked_ips[ip]
+        else:
+            checked_ips[ip] = {
+                'is_suspicious': False,
+                'location': 'Unknown',
+                'domain': 'Unknown',
+                'last_checked': datetime.now().isoformat()
+            }
+            save_checked_ips(checked_ips)
+            return checked_ips[ip]
+
     except requests.exceptions.RequestException as e:
         print(f"Fout bij het controleren van IP {ip}: {e}")
-        return {'is_suspicious': False, 'location': 'Unknown', 'domain': 'Unknown'}
+        return {
+            'is_suspicious': False,
+            'location': 'Unknown',
+            'domain': 'Unknown',
+            'last_checked': datetime.now().isoformat()
+        }
