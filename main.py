@@ -55,7 +55,7 @@ notebook.add(ssh_frame, text='SSH')
 # === SSH Tab content ====
 
 # ==== Treeview setup ====
-columnsssh = ("Date", "Source IP", "Dest IP", "Count", "Suspicious", "Location", "Domain")
+columnsssh = ("Date", "Source IP","Location", "Dest IP", "Count", "Suspicious",  "Domain")
 
 tree_frame = ttk.Frame(ssh_frame)
 tree_frame.pack(fill="both", expand=True, padx=10, pady=5)
@@ -84,11 +84,12 @@ def process_new_ssh_entry(item_id, log_entry, count, is_suspicious, location, do
         # Prepare values for the treeview columns
         values = (
             log_date,  # Date
-            dest_ip,    # Destination IP
+            dest_ip,  
+            location, # Destination IP
             src_ip,    # Source IP
             count,     # Count
             is_suspicious,  # Suspicious
-            location,  # Location
+             # Location
             domain     # Domain
         )
 
@@ -149,7 +150,7 @@ clearall_button.pack(side="left", padx=5)
 
 # ==== Live Netwrork Tab content ====
 
-columns = ("Date", "Time", "Action", "Protocol", "Source IP", "Dest IP", "Source Port", "Dest Port", "Size", "Count", "Suspicious", "Location", "Domain")
+columns = ("Date", "Time", "Action", "Protocol", "Source IP", "Dest IP", "Location", "Source Port", "Dest Port", "Size", "Count", "Suspicious",  "Domain")
 
 tree_frame = ttk.Frame(live_network_frame)
 tree_frame.pack(fill="both", expand=True, padx=10, pady=5)
@@ -190,12 +191,13 @@ def update_livetreeview(item_id, log_entry, count, is_suspicious, location, doma
         log_entry["protocol"],
         log_entry["source_ip"],
         log_entry["dest_ip"],
+        location,
         log_entry["source_port"],
         log_entry["dest_port"],
         log_entry["size"],
         count,
         is_suspicious,
-        location,
+        
         domain
     )
 
@@ -264,7 +266,7 @@ internal_check.pack(side="top", anchor='w', padx=10, pady=5)
 public_check.pack(side="top", anchor='w', padx=10, pady=5)
 
 # ==== Treeview setup ====
-columns = ("Date", "Time", "Action", "Protocol", "Source IP", "Dest IP", "Source Port", "Dest Port", "Size", "Count", "Suspicious", "Location", "Domain")
+columns = ("Date", "Time", "Action", "Protocol", "Source IP", "Dest IP","Location", "Source Port", "Dest Port", "Size", "Count", "Suspicious",  "Domain")
 
 tree_frame = ttk.Frame(pfirewall_frame)
 tree_frame.pack(fill="both", expand=True, padx=10, pady=5)
@@ -321,12 +323,13 @@ def update_treeview(item_id, log_entry, count, is_suspicious, location, domain):
         log_entry["protocol"],
         log_entry["source_ip"],
         log_entry["dest_ip"],
+        location,
         log_entry["source_port"],
         log_entry["dest_port"],
         log_entry["size"],
         count,
         is_suspicious,
-        location,
+        
         domain
     )
 
